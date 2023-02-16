@@ -1,43 +1,52 @@
+const userSchema = require("../model/model");
+const userValidator = async (req, res, next) => {
+  //first check if email is valid return next()
+  //check if user exists if true return next() ask to login
+  //username, password , confirm password
+  //we will save user to db and send the response -> id
 
-const userSchema = require('../model/model')
-const userValidator = async(req, res) =>{
-    
-    const existUsername = await userSchema.findOne({ username: req.body.username});
-    if (existUsername) {
-      console.log('username taken');
-      res.status(400).json({
-        message:'username taken'
-      })
-    }else {
-        console.log('user register')
-        const user = new userSchema(req.body);
-        const savedData  = await user.save();
-        
-        return res.status(200).json({
-            message: "user added successfully",
-            savedData:savedData._id,
-        });
-          }
+  const errors = [];
 
-       const existEmail = await userSchema.findOne({email_id:req.body.email_id});
-       if(existEmail){
-        console.log('email is already exists');
-        res.status(400).json({
-            message:'email is already exists'
-        })
-       } else{
-        console.log('user register')
-        const user = new userSchema(req.body);
-        const savedData  = await user.save();
-        
-        return res.status(200).json({
-            message: "user added successfully",
-            savedData:savedData._id,
-        });
-       }
-  
+  const emailRegexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+  if (!emailRegexp.test(req.body.email_id)) {
+    const error = {
+      field: "Email",
+      message: "Not a valid email",
+    };
+    errors.push(error);
+  }
 
-}
+  if (req.body.password !== req.body.confirm_password) {
+    const error = {
+      field: "password",
+      message: "password doesn't match",
+    };
+    errors.push(error);
+  }
+  if (errors.length > 0)
+    return res.status(500).json({ Error: "Please check below fields", errors });
 
+  const existEmail = await userSchema.findOne({ email_id: req.body.email_id });
+  if (existEmail) {
+    const error = {
+      field: "Email",
+      message: "email is already exists",
+    };
+    return next("email is already exists");
+  }
+
+  const existUsername = await userSchema.findOne({
+    username: req.body.username,
+  });
+  if (existUsername) {
+    const error = {
+      field: "Username",
+      message: "username taken",
+    };
+    return next("username is already exists use a different username");
+  }
+
+  next();
+};
 
 module.exports = userValidator;
