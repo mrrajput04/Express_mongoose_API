@@ -1,17 +1,24 @@
-const express = require("express");
-const userCon = require("../controller/controller");
-const userValidator = require("../middleware/middleware");
+const express = require('express');
+const userCon = require('../controller/controller');
+const userValidator = require('../middleware/middleware');
 
 const router = express.Router();
 
-router.post("/login", userCon.getId);
 
-router.get("/get/", userCon.getUser);
 
-router.get("/list/:", userCon.getAllUsers);
+router.get('/get/', userCon.getUser);
 
-router.post("/register", userValidator, userCon.addUser);
+router.get('/get/:id',userCon.allData)
 
-router.put("/delete", userCon.deleteUser);
+router.get('/list/:', userCon.getAllUsers);
+
+router.post('/register', userValidator, userCon.addUser);
+
+router.post('/login', userCon.getId);
+
+router.post('/address',userCon.userAddress)
+
+
+router.put('/delete', userCon.deleteUser);
 
 module.exports = router;
