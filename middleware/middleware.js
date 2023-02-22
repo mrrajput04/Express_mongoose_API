@@ -1,4 +1,4 @@
-const userData = require('../model/model');
+const userData = require("../model/model");
 
 const userValidator = async (req, res, next) => {
   //first check if email is valid return next()
@@ -11,32 +11,32 @@ const userValidator = async (req, res, next) => {
   const emailRegexp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
   if (!emailRegexp.test(req.body.email_id)) {
     const error = {
-      field: 'Email',
-      message: 'Not a valid email',
+      field: "Email",
+      message: "Not a valid email",
     };
     errors.push(error);
   }
 
   if (req.body.password !== req.body.confirm_password) {
     const error = {
-      field: 'password',
+      field: "password",
       message: "password doesn't match",
     };
     errors.push(error);
   }
   if (errors.length > 0)
-    return res.status(500).json({ Error: 'Please check below fields', errors });
+    return res.status(500).json({ Error: "Please check below fields", errors });
 
   const existEmail = await userData.userData.findOne({
     email_id: req.body.email_id,
   });
   if (existEmail) {
     const error = {
-      field: 'Email',
-      message: 'email is already exists',
+      field: "Email",
+      message: "email is already exists",
     };
     errors.push(error);
-    return next('email is already exists');
+    return next("email is already exists");
   }
 
   const existUsername = await userData.userData.findOne({
@@ -44,10 +44,10 @@ const userValidator = async (req, res, next) => {
   });
   if (existUsername) {
     const error = {
-      field: 'Username',
-      message: 'username taken',
+      field: "Username",
+      message: "username taken",
     };
-    return next('username is already exists use a different username');
+    return next("username is already exists use a different username");
   }
 
   next();
