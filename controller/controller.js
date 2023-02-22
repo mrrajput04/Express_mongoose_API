@@ -3,7 +3,6 @@ const md5 = require("md5");
 
 exports.getId = async (req, res) => {
   const { username, password } = req.body;
-  // const Id = req.body.user_id;
   try {
     const data = await userData.login(username, password);
     const token = md5(data._id);
@@ -14,9 +13,10 @@ exports.getId = async (req, res) => {
       access_token: token,
       _id: req.body._id,
     }).save();
-    return res
-      .status(200)
-      .json({ message: "user login successfully", access_token: userData._id });
+    return res.status(200).json({
+      message: "user login successfully",
+      access_token: access_tokens.access_token,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -35,16 +35,15 @@ exports.getUser = async (req, res) => {
 };
 
 exports.allData = async (req, res) => {
- const  _id = req.body._id;
+  const _id = req.body._id;
   try {
     const data = await userData
-      .findOne({ _id:  _id})
+      .findOne({ _id: _id })
       .populate({
         path: "address",
         select: "address city state pincode phoneno -_id",
       })
       .exec();
-    console.log("address is", data);
     res
       .status(200)
       .json({ message: "data fetched successfully", user_data: data });
@@ -52,12 +51,6 @@ exports.allData = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
-
-//    {
-//     if (!allDetail)
-//         return next(CustomError.Error404("User not found: Internal Server Error"));
-//     res.json(allDetail);
-// }
 
 exports.getAllUsers = async (req, res) => {
   const requestCount = req.query.count;
@@ -84,13 +77,20 @@ exports.addUser = async (req, res) => {
 };
 
 exports.address = async (req, res) => {
+  const header = req.headers["authorization"];
+  if (!header)
+    return next(CustomError.unauthorized("unauthorized access denied"));
+  const tokens = header.split(" ")[1];
+
   const add = req.body;
   try {
-    const address = await userAddress(add).save();
-    return res.status(200).json({
-      message: "address entered successfully",
-      address: address,
-    });
+    const addr = await userAddress(add).save();
+    const user = await access_token.findOne({ access_token: tokens });
+    const userId = user._id;
+    const data = await userData.findOne({ _id: userId });
+    data.address.push(addr);
+    await data.save();
+    return res.status(200).json(data);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
