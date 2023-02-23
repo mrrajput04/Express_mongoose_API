@@ -1,21 +1,24 @@
-const { userData, access_token, userAddress } = require("../model/model");
-const md5 = require("md5");
+const { userData, userAddress } = require("../model/model");
+const key = require("../config");
+const tokenVerify = require('../middleware/tokenVerify')
+const jwt = require("jsonwebtoken");
 
 exports.getId = async (req, res) => {
   const { username, password } = req.body;
   try {
     const data = await userData.login(username, password);
-    const token = md5(data._id);
-    // const preToken = await userData.findOne({ _id: req.body.user_id });
+    const access_token = jwt.sign(
+      {
+        exp: Math.floor(Date.now() / 1000) + 10 * 60,
+        payload: data.username,
+      },
+      key.secretKey
+    );
 
-    // if (preToken) return res.status(200).json({ ...preToken._doc });
-    const access_tokens = await access_token({
-      access_token: token,
-      _id: req.body._id,
-    }).save();
     return res.status(200).json({
       message: "user login successfully",
-      access_token: access_tokens.access_token,
+      access_token: access_token,
+      user_id: data._id,
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -77,20 +80,16 @@ exports.addUser = async (req, res) => {
 };
 
 exports.address = async (req, res) => {
-  const header = req.headers["authorization"];
-  if (!header)
-    return next(CustomError.unauthorized("unauthorized access denied"));
-  const tokens = header.split(" ")[1];
-
+  
   const add = req.body;
   try {
     const addr = await userAddress(add).save();
-    const user = await access_token.findOne({ access_token: tokens });
+    const user = await userData.findOne({ });
     const userId = user._id;
     const data = await userData.findOne({ _id: userId });
     data.address.push(addr);
     await data.save();
-    return res.status(200).json(data);
+    return res.status(200).json({ message: "message" });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -101,6 +100,29 @@ exports.deleteUser = async (req, res) => {
   try {
     const user = await userData.findByIdAndDelete(Id).exec();
     return res.status(200).json({ message: "user deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.deleteAddress = async (req, res) => {
+  Id = req.body._id;
+  try {
+    const user = await userData.findByIdAndDelete(Id);
+    console.log(user, "===>>>");
+    return res
+      .status(200)
+      .json({ message: "user address deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.forgetPassword = async (req, res) => {
+  email = req.body.email_id;
+  try {
+    const user = await userData.find(email);
+    res.status(200).json({});
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
