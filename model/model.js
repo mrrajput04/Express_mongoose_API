@@ -1,7 +1,7 @@
 const { mongoose, Schema } = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-let salt = 10;
+const salt = 10;
 
 const userSchema = new Schema({
   username: {
@@ -83,6 +83,8 @@ userSchema.pre("save", function (next) {
     });
   });
 });
+
+
 
 userSchema.methods.comparePassword = function (userPassword, callback) {
   bcrypt.compare(userPassword, this.password, function (err, isMatch) {

@@ -17,6 +17,8 @@
     "express-validator": "^6.15.0",
     "jsonwebtoken": "^9.0.0",
     "md5": "^2.3.0",
-    "mongoose": "^6.9.1"
+    "mongoose": "^6.9.1",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.1"
   }
 }

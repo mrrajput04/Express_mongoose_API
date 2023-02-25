@@ -1,7 +1,10 @@
 const express = require("express");
 const userCon = require("../controller/controller");
 const userValidator = require("../middleware/middleware");
+const passwordCheck = require("../middleware/passwordReset");
 const tokenVerify = require("../middleware/tokenVerify");
+
+
 
 const router = express.Router();
 
@@ -19,7 +22,7 @@ router.post("/address", tokenVerify, userCon.address);
 
 router.post("/forgot-password", userCon.forgetPassword);
 
-// router.put('/verify-reset-password/:password-reset-token',userCon.resetPassword)
+router.put('/verify-reset-password/:password-reset-token',tokenVerify,passwordCheck,userCon.resetPassword)
 
 router.put("/delete", userCon.deleteUser);
 
