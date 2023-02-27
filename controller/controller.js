@@ -2,7 +2,7 @@ const { userData, userAddress } = require("../model/model");
 const key = require("../config");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const bcrypt = require('bcryptjs')
+const bcrypt = require("bcryptjs");
 const salt = 10;
 
 exports.userLogin = async (req, res) => {
@@ -130,8 +130,6 @@ exports.deleteAddress = async (req, res) => {
   }
 };
 
-
-
 exports.forgetPassword = async (req, res) => {
   email = req.body.email_id;
   try {
@@ -144,33 +142,30 @@ exports.forgetPassword = async (req, res) => {
       key.secretKey
     );
 
-    res
-      .status(200)
-      .json({
-        message: "access token generated successfully",
-        access_token: access_token,
-      });
+    res.status(200).json({
+      message: "access token generated successfully",
+      access_token: access_token,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
 
-
-exports.resetPassword = async(req,res) =>{
-  
+exports.resetPassword = async (req, res) => {
   const Id = req.token;
   const add = req.body.password;
-  try{
+  try {
     const hashedPassword = await bcrypt.hash(add, salt);
-    const user = await userData.findByIdAndUpdate(Id.payload,{password:hashedPassword},{new: true});
-    res
-      .status(200)
-      .json({
-        message: "password updated successfully",
-        access_token: user,
-      });
-  } catch(error){
-    res.status(400).json({message:error.message})
+    const user = await userData.findByIdAndUpdate(
+      Id.payload,
+      { password: hashedPassword },
+      { new: true }
+    );
+    const deleteAllTokens = await Token.deleteMany(Id.payload);
+    res.status(200).json({
+      message: "password updated successfully",
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
-
-}
+};
