@@ -16,6 +16,7 @@ database.once("connected", () => {
 
 const app = express();
 app.use(express.json());
+app.use(express.static('public/uploads'))
 
 app.use("/user", routes);
 
