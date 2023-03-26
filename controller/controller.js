@@ -9,11 +9,10 @@ exports.userLogin = async (req, res) => {
   const { username, password } = req.body;
   try {
     const data = await userData.login(username, password);
-
     const access_token = jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 60 * 60,
-        payload: data._id,
+        _id:data._id,
       },
       key.secretKey
     );
@@ -131,7 +130,7 @@ exports.deleteAddress = async (req, res) => {
 };
 
 exports.forgetPassword = async (req, res) => {
-  email = req.body.email_id;
+  let email = req.body.email_id;
   try {
     const findUser = await userData.findOne({ email_id: email });
     const access_token = jwt.sign(
@@ -156,12 +155,12 @@ exports.resetPassword = async (req, res) => {
   const add = req.body.password;
   try {
     const hashedPassword = await bcrypt.hash(add, salt);
-    const user = await userData.findByIdAndUpdate(
-      Id.payload,
+      await userData.findByIdAndUpdate(
+      Id._id,
       { password: hashedPassword },
       { new: true }
     );
-    const deleteAllTokens = await Token.deleteMany(Id.payload);
+   await Token.deleteMany(Id.payload);
     res.status(200).json({
       message: "password updated successfully",
     });
@@ -169,3 +168,13 @@ exports.resetPassword = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+
+exports.userList = async(req,res)=>{
+  try{
+    const list = await userData.find({_id:req.user._id});
+    res.status(200).json({message:"successful",list:list});
+  } catch (error){
+    res.status(400).json({error:error})
+  }
+}
