@@ -26,34 +26,27 @@ const userSchema = new Schema({
   lastName: {
     type: String,
   },
+  address: [{ type: Schema.Types.ObjectId, ref: "Address" }]
 });
 
 const tokenSchema = new Schema({
-  user_Id: {
-    type: Schema.Types.ObjectId,
-    // required: true,
-    ref: "UserSchema",
+  _id: {
+    type:String
   },
   access_token: {
     type: String,
-    // required: true,
+    required: true,
   },
   expireAt: {
     type: Date,
     default: Date.now,
-    index: { expires: 10 },
+    index: { expires: "60s" },
   },
 });
 
 const address = new mongoose.Schema({
-  user_id: {
-    _id: Schema.Types.ObjectId,
-    user_id: [{ type: Schema.Types.ObjectId, ref: "UserSchema" }],
-  },
-  address: {
-    type: String,
-    required: true,
-  },
+  user_id: { type: Schema.Types.ObjectId, ref: "UserSchema" },
+  address:String,
   city: {
     type: String,
     required: true,
@@ -62,15 +55,16 @@ const address = new mongoose.Schema({
     type: String,
     required: true,
   },
-  pin_code: {
+  pincode: {
     type: Number,
     min: 5,
     required: true,
   },
-  phone_no: {
+  phoneno: {
     type: Number,
     match: /^(\()?\d{3}(\))?(-|\s)?\d{3}(-|\s)\d{4}$/,
-  },
+    required:true
+  }
 });
 
 //password encryption using bcrypt

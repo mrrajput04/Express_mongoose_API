@@ -16,7 +16,7 @@ router.post('/register', userValidator, userCon.addUser);
 
 router.post('/login', userCon.getId);
 
-router.post('/address',userCon.userAddress)
+router.post('/address',userCon.address)
 
 
 router.put('/delete', userCon.deleteUser);
