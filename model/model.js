@@ -39,8 +39,8 @@ const tokenSchema = new Schema({
   },
   expireAt: {
     type: Date,
-    default: new Date,
-    index: { expires: '5000' },
+    default: new Date(),
+    index: { expires: "5000" },
   },
 });
 
