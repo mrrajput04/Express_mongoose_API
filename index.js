@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const routes = require("./routes/route");
 const { DBURL, PORT } = require("./config/index");
 
-mongoose.connect(DBURL);
+mongoose.connect(DBURL, { useNewUrlParser: true, useUnifiedTopology: true });
 const database = mongoose.connection;
 
 database.on("error", (error) => {

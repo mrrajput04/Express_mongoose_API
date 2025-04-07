@@ -1,16 +1,17 @@
 const { userData, userAddress } = require("../model/model");
 const key = require("../config");
-const tokenVerify = require('../middleware/tokenVerify')
 const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
-exports.getId = async (req, res) => {
+exports.userLogin = async (req, res) => {
   const { username, password } = req.body;
   try {
     const data = await userData.login(username, password);
+
     const access_token = jwt.sign(
       {
         exp: Math.floor(Date.now() / 1000) + 10 * 60,
-        payload: data.username,
+        payload: data._id,
       },
       key.secretKey
     );
@@ -80,16 +81,16 @@ exports.addUser = async (req, res) => {
 };
 
 exports.address = async (req, res) => {
-  
+  const token = req.token;
   const add = req.body;
   try {
     const addr = await userAddress(add).save();
-    const user = await userData.findOne({ });
-    const userId = user._id;
-    const data = await userData.findOne({ _id: userId });
+    // const user = await userData.findOne({ });
+    // const userId = user._id;
+    const data = await userData.findOne({ _id: token.payload });
     data.address.push(addr);
     await data.save();
-    return res.status(200).json({ message: "message" });
+    return res.status(200).json({ message: "address added successfully" });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -106,10 +107,22 @@ exports.deleteUser = async (req, res) => {
 };
 
 exports.deleteAddress = async (req, res) => {
-  Id = req.body._id;
+  // Id = req.body.address;
+  const checkedItemId = mongoose.Types.ObjectId(req.body.address); //this is the comment ID
+  console.log(checkedItemId, "=======>");
+
+  const data = await userData.update(
+    { _id: checkedItemId },
+    { " $pull": { "address.0": "" } }
+  );
+  console.log(data, "======>>>>>");
+
   try {
-    const user = await userData.findByIdAndDelete(Id);
-    console.log(user, "===>>>");
+    // for (let id of Id) {
+    // console.log(id, ">>>>>>>>-------");
+    // const user = await userData.findByIdAndDelete(data).exec()
+    // console.log(user,'====<<<');
+
     return res
       .status(200)
       .json({ message: "user address deleted successfully" });
