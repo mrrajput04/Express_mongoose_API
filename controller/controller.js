@@ -2,16 +2,17 @@ const { userData, userAddress } = require("../model/model");
 const key = require("../config");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const salt = 10;
 
 exports.userLogin = async (req, res) => {
   const { username, password } = req.body;
   try {
     const data = await userData.login(username, password);
-
     const access_token = jwt.sign(
       {
-        exp: Math.floor(Date.now() / 1000) + 10 * 60,
-        payload: data._id,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
+        _id:data._id,
       },
       key.secretKey
     );
@@ -85,8 +86,6 @@ exports.address = async (req, res) => {
   const add = req.body;
   try {
     const addr = await userAddress(add).save();
-    // const user = await userData.findOne({ });
-    // const userId = user._id;
     const data = await userData.findOne({ _id: token.payload });
     data.address.push(addr);
     await data.save();
@@ -108,21 +107,20 @@ exports.deleteUser = async (req, res) => {
 
 exports.deleteAddress = async (req, res) => {
   // Id = req.body.address;
-  const checkedItemId = mongoose.Types.ObjectId(req.body.address); //this is the comment ID
+  const checkedItemId = mongoose.Types.ObjectId(req.body.address);
   console.log(checkedItemId, "=======>");
 
   const data = await userData.update(
     { _id: checkedItemId },
     { " $pull": { "address.0": "" } }
   );
-  console.log(data, "======>>>>>");
+  console.log(data, "======");
 
   try {
     // for (let id of Id) {
     // console.log(id, ">>>>>>>>-------");
     // const user = await userData.findByIdAndDelete(data).exec()
     // console.log(user,'====<<<');
-
     return res
       .status(200)
       .json({ message: "user address deleted successfully" });
@@ -132,11 +130,51 @@ exports.deleteAddress = async (req, res) => {
 };
 
 exports.forgetPassword = async (req, res) => {
-  email = req.body.email_id;
+  let email = req.body.email_id;
   try {
-    const user = await userData.find(email);
-    res.status(200).json({});
+    const findUser = await userData.findOne({ email_id: email });
+    const access_token = jwt.sign(
+      {
+        exp: Math.floor(Date.now() / 1000) + 15 * 60,
+        payload: findUser._id,
+      },
+      key.secretKey
+    );
+
+    res.status(200).json({
+      message: "access token generated successfully",
+      access_token: access_token,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
+exports.resetPassword = async (req, res) => {
+  const Id = req.token;
+  const add = req.body.password;
+  try {
+    const hashedPassword = await bcrypt.hash(add, salt);
+      await userData.findByIdAndUpdate(
+      Id._id,
+      { password: hashedPassword },
+      { new: true }
+    );
+   await Token.deleteMany(Id.payload);
+    res.status(200).json({
+      message: "password updated successfully",
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+
+exports.userList = async(req,res)=>{
+  try{
+    const list = await userData.find({_id:req.user._id});
+    res.status(200).json({message:"successful",list:list});
+  } catch (error){
+    res.status(400).json({error:error})
+  }
+}
